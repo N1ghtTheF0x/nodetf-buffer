@@ -58,6 +58,18 @@ class NBuffer
         this.readOffset += NBuffer.SizeOf.Int64
         return value
     }
+    readFloat()
+    {
+        const value = this.endian == "little" ? this.#buffer.readFloatLE(this.readOffset) : this.#buffer.readFloatBE(this.readOffset)
+        this.readOffset += NBuffer.SizeOf.Float
+        return value
+    }
+    readDouble()
+    {
+        const value = this.endian == "little" ? this.#buffer.readDoubleLE(this.readOffset) : this.#buffer.readDoubleBE(this.readOffset)
+        this.readOffset += NBuffer.SizeOf.Double
+        return value
+    }
     readArray(size: number,type: NBuffer.SizeOf = NBuffer.SizeOf.Int8)
     {
         const arr = []
@@ -136,6 +148,14 @@ class NBuffer
     {
         this.writeOffset = this.endian == "little" ? this.#buffer.writeBigUInt64LE(value,this.writeOffset) : this.#buffer.writeBigUInt64BE(value,this.writeOffset)
     }
+    writeFloat(value: number)
+    {
+        this.writeOffset = this.endian == "little" ? this.#buffer.writeFloatLE(value,this.writeOffset) : this.#buffer.writeFloatBE(value,this.writeOffset)
+    }
+    writeDouble(value: number)
+    {
+        this.writeOffset = this.endian == "little" ? this.#buffer.writeDoubleLE(value,this.writeOffset) : this.#buffer.writeDoubleBE(value,this.writeOffset)
+    }
     writeArray(arr: ReadonlyArray<number>,type: NBuffer.SizeOf = NBuffer.SizeOf.Int8)
     {
         for(const num of arr)
@@ -196,7 +216,9 @@ namespace NBuffer
         Int8 = 1,
         Int16 = 2,
         Int32 = 4,
-        Int64 = 8
+        Int64 = 8,
+        Float = 4,
+        Double = 8
     }
     export type JSON = {
         type: 'NBuffer'
