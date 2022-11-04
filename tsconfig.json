@@ -4,10 +4,16 @@
         "moduleResolution": "Node",
         "target": "ESNext",
         "jsx": "preserve",
-        "strict": true
+        "strict": true,
+        "outDir": "lib",
+        "declaration": true,
+        "declarationDir": "lib",
+        "sourceMap": true,
+        "sourceRoot": "lib"
     },
     "exclude": [
         "node_modules",
-        "**/node_modules/*"
+        "**/node_modules/*",
+        "test*"
     ]
 }
