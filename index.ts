@@ -1,30 +1,40 @@
+import { PathLike, readFileSync, writeFileSync } from "node:fs"
+import { readFile, writeFile } from "node:fs/promises"
+
 class NBuffer
 {
+    static DEFAULT_ENDIAN: NBuffer.Endian = "little"
     #buffer: Buffer
     readOffset: number = 0
     writeOffset: number = 0
-    endian: NBuffer.Endian = "little"
+    endian: NBuffer.Endian
     static isNBuffer(obj: any): obj is NBuffer
     {
         return obj instanceof NBuffer
     }
+    static read(path: PathLike)
+    {
+        return new this(readFileSync(path))
+    }
+    static async readA(path: PathLike)
+    {
+        return new this(await readFile(path))
+    }
+    static write(path: PathLike,buffer: NBuffer)
+    {
+        return writeFileSync(path,buffer.#buffer)
+    }
+    static writeA(path: PathLike,buffer: NBuffer)
+    {
+        return writeFile(path,buffer.#buffer)
+    }
     constructor(buffer: Buffer)
     constructor(size: number)
-    constructor(a: Buffer | number)
+    constructor(array: WithImplicitCoercion<ArrayBuffer | SharedArrayBuffer>)
+    constructor(a: Buffer | number | WithImplicitCoercion<ArrayBuffer | SharedArrayBuffer>)
     {
-        this.#buffer = typeof a == "number" ? Buffer.alloc(a) : a
-    }
-    #checkReadOffset(add: number = 0)
-    {
-        return this.readOffset + add >= this.length
-    }
-    #checkWriteOffset(add: number = 0)
-    {
-        return this.writeOffset + add >= this.length
-    }
-    #reachedEnd(): never
-    {
-        throw new Error(`End of Buffer reached!`)
+        this.#buffer = typeof a == "number" ? Buffer.alloc(a) : Buffer.isBuffer(a) ? a : Buffer.from(a)
+        this.endian = NBuffer.DEFAULT_ENDIAN
     }
     getNodeJSBuffer()
     {
@@ -32,74 +42,66 @@ class NBuffer
     }
     readInt8()
     {
-        if(this.#checkReadOffset(NBuffer.SizeOf.Int8)) this.#reachedEnd()
         const value = this.#buffer.readInt8(this.readOffset)
         this.readOffset += NBuffer.SizeOf.Int8
         return value
     }
     readInt16()
     {
-        if(this.#checkReadOffset(NBuffer.SizeOf.Int16)) this.#reachedEnd()
         const value = this.endian == "little" ? this.#buffer.readInt16LE(this.readOffset) : this.#buffer.readInt16BE(this.readOffset)
         this.readOffset += NBuffer.SizeOf.Int16
         return value
     }
     readInt32()
     {
-        if(this.#checkReadOffset(NBuffer.SizeOf.Int32)) this.#reachedEnd()
         const value = this.endian == "little" ? this.#buffer.readInt32LE(this.readOffset) : this.#buffer.readInt32BE(this.readOffset)
         this.readOffset += NBuffer.SizeOf.Int32
         return value
     }
     readInt64()
     {
-        if(this.#checkReadOffset(NBuffer.SizeOf.Int64)) this.#reachedEnd()
         const value = this.endian == "little" ? this.#buffer.readBigInt64LE(this.readOffset) : this.#buffer.readBigInt64BE(this.readOffset)
         this.readOffset += NBuffer.SizeOf.Int64
         return value
     }
     readUInt8()
     {
-        if(this.#checkReadOffset(NBuffer.SizeOf.Int8)) this.#reachedEnd()
         const value = this.#buffer.readUInt8(this.readOffset)
         this.readOffset += NBuffer.SizeOf.Int8
         return value
     }
     readUInt16()
     {
-        if(this.#checkReadOffset(NBuffer.SizeOf.Int16)) this.#reachedEnd()
         const value = this.endian == "little" ? this.#buffer.readUInt16LE(this.readOffset) : this.#buffer.readUInt16BE(this.readOffset)
         this.readOffset += NBuffer.SizeOf.Int16
         return value
     }
     readUInt32()
     {
-        if(this.#checkReadOffset(NBuffer.SizeOf.Int32)) this.#reachedEnd()
         const value = this.endian == "little" ? this.#buffer.readUInt32LE(this.readOffset) : this.#buffer.readUInt32BE(this.readOffset)
         this.readOffset += NBuffer.SizeOf.Int32
         return value
     }
     readUInt64()
     {
-        if(this.#checkReadOffset(NBuffer.SizeOf.Int64)) this.#reachedEnd()
         const value = this.endian == "little" ? this.#buffer.readBigUInt64LE(this.readOffset) : this.#buffer.readBigUInt64BE(this.readOffset)
         this.readOffset += NBuffer.SizeOf.Int64
         return value
     }
     readFloat()
     {
-        if(this.#checkReadOffset(NBuffer.SizeOf.Float)) this.#reachedEnd()
         const value = this.endian == "little" ? this.#buffer.readFloatLE(this.readOffset) : this.#buffer.readFloatBE(this.readOffset)
         this.readOffset += NBuffer.SizeOf.Float
         return value
     }
     readDouble()
     {
-        if(this.#checkReadOffset(NBuffer.SizeOf.Double)) this.#reachedEnd()
         const value = this.endian == "little" ? this.#buffer.readDoubleLE(this.readOffset) : this.#buffer.readDoubleBE(this.readOffset)
         this.readOffset += NBuffer.SizeOf.Double
         return value
     }
+    readArray(size: number,type: NBuffer.SizeOf.Int64): Array<bigint>
+    readArray(size: number,type: NBuffer.SizeOf): Array<number>
     readArray(size: number,type: NBuffer.SizeOf = NBuffer.SizeOf.Int8)
     {
         const arr = []
@@ -116,10 +118,15 @@ class NBuffer
                 case NBuffer.SizeOf.Int32:
                     arr.push(this.readInt32())
                     break
+                case NBuffer.SizeOf.Int64:
+                    arr.push(this.readInt64())
+                    break
             }
 
         return arr
     }
+    readUArray(size: number,type: NBuffer.SizeOf.Int64): Array<bigint>
+    readUArray(size: number,type: NBuffer.SizeOf): Array<number>
     readUArray(size: number,type: NBuffer.SizeOf = NBuffer.SizeOf.Int8)
     {
         const arr = []
@@ -136,65 +143,101 @@ class NBuffer
                 case NBuffer.SizeOf.Int32:
                     arr.push(this.readUInt32())
                     break
+                case NBuffer.SizeOf.Int64:
+                    arr.push(this.readUInt64())
+                    break
             }
 
         return arr
     }
     readString(size: number,encoding?: BufferEncoding)
     {
-        if(this.#checkReadOffset(size)) this.#reachedEnd()
         const value = this.#buffer.toString(encoding,this.readOffset,this.readOffset+size)
         this.readOffset += size
         return value
     }
+    readStruct(struct: NBuffer.Struct)
+    {
+        const obj: Record<string,any> = {}
+        for(const [key,type] of Object.entries(struct))
+        {
+            switch(type)
+            {
+                case "double":
+                    obj[key] = this.readDouble()
+                    break
+                case "float":
+                    obj[key] = this.readFloat()
+                    break
+                case "int16":
+                    obj[key] = this.readInt16()
+                    break
+                case "int32":
+                    obj[key] = this.readInt32()
+                    break
+                case "int64":
+                    obj[key] = this.readInt64()
+                    break
+                case "int8":
+                    obj[key] = this.readInt8()
+                    break
+                case "uint16":
+                    obj[key] = this.readUInt16()
+                    break
+                case "uint32":
+                    obj[key] = this.readUInt32()
+                    break
+                case "uint64":
+                    obj[key] = this.readUInt64()
+                    break
+                case "uint8":
+                    obj[key] = this.readUInt8()
+                    break
+                default:
+                    if(typeof type == "function") obj[key] = type(this)
+                    else if(typeof type == "object") obj[key] = this.readStruct(type)
+            }
+        }
+        return obj
+    }
     writeInt8(value: number)
     {
-        if(this.#checkWriteOffset(NBuffer.SizeOf.Int8)) this.#reachedEnd()
         this.writeOffset = this.#buffer.writeInt8(value,this.writeOffset)
     }
     writeInt16(value: number)
     {
-        if(this.#checkWriteOffset(NBuffer.SizeOf.Int16)) this.#reachedEnd()
         this.writeOffset = this.endian == "little" ? this.#buffer.writeInt16LE(value,this.writeOffset) : this.#buffer.writeInt16BE(value,this.writeOffset)
     }
     writeInt32(value: number)
     {
-        if(this.#checkWriteOffset(NBuffer.SizeOf.Int32)) this.#reachedEnd()
         this.writeOffset = this.endian == "little" ? this.#buffer.writeInt32LE(value,this.writeOffset) : this.#buffer.writeInt32BE(value,this.writeOffset)
     }
     writeInt64(value: bigint)
     {
-        if(this.#checkWriteOffset(NBuffer.SizeOf.Int64)) this.#reachedEnd()
         this.writeOffset = this.endian == "little" ? this.#buffer.writeBigInt64LE(value,this.writeOffset) : this.#buffer.writeBigInt64BE(value,this.writeOffset)
     }
     writeUInt8(value: number)
     {
-        if(this.#checkWriteOffset(NBuffer.SizeOf.Int8)) this.#reachedEnd()
         this.writeOffset = this.#buffer.writeUInt8(value,this.writeOffset)
     }
     writeUInt16(value: number)
     {
-        if(this.#checkWriteOffset(NBuffer.SizeOf.Int16)) this.#reachedEnd()
         this.writeOffset = this.endian == "little" ? this.#buffer.writeUInt16LE(value,this.writeOffset) : this.#buffer.writeUInt16BE(value,this.writeOffset)
     }
     writeUInt32(value: number)
     {
-        if(this.#checkWriteOffset(NBuffer.SizeOf.Int32)) this.#reachedEnd()
         this.writeOffset = this.endian == "little" ? this.#buffer.writeUInt32LE(value,this.writeOffset) : this.#buffer.writeUInt32BE(value,this.writeOffset)
     }
     writeUInt64(value: bigint)
     {
-        if(this.#checkWriteOffset(NBuffer.SizeOf.Int64)) this.#reachedEnd()
         this.writeOffset = this.endian == "little" ? this.#buffer.writeBigUInt64LE(value,this.writeOffset) : this.#buffer.writeBigUInt64BE(value,this.writeOffset)
     }
     writeFloat(value: number)
     {
-        if(this.#checkWriteOffset(NBuffer.SizeOf.Float)) this.#reachedEnd()
         this.writeOffset = this.endian == "little" ? this.#buffer.writeFloatLE(value,this.writeOffset) : this.#buffer.writeFloatBE(value,this.writeOffset)
     }
     writeDouble(value: number)
     {
-        if(this.#checkWriteOffset(NBuffer.SizeOf.Double)) this.#reachedEnd()
         this.writeOffset = this.endian == "little" ? this.#buffer.writeDoubleLE(value,this.writeOffset) : this.#buffer.writeDoubleBE(value,this.writeOffset)
     }
     writeArray(arr: ReadonlyArray<number>,type: NBuffer.SizeOf = NBuffer.SizeOf.Int8)
@@ -217,7 +260,6 @@ class NBuffer
     }
     writeString(str: string,encoding?: BufferEncoding)
     {
-        if(this.#checkWriteOffset(str.length)) this.#reachedEnd()
         this.writeOffset += this.#buffer.write(str,this.writeOffset,encoding)
     }
     write(buffer: NBuffer): void
@@ -226,7 +268,6 @@ class NBuffer
     {
         if(Buffer.isBuffer(buffer))
         {
-            if(this.#checkWriteOffset(buffer.length)) this.#reachedEnd()
             this.#buffer.set(buffer,this.writeOffset)
             this.writeOffset += buffer.length
         }
@@ -234,7 +275,6 @@ class NBuffer
     }
     subarray(size: number)
     {
-        if(this.#checkWriteOffset(size)) this.#reachedEnd()
         const buffer = this.#buffer.subarray(this.writeOffset,this.writeOffset+size)
         this.writeOffset += size
         return new NBuffer(buffer)
@@ -275,10 +315,22 @@ namespace NBuffer
         Float = 4,
         Double = 8
     }
+    export type Integer = "int8" | "int16" | "int32" | "uint8" | "uint16" | "uint32"
+    export type BigInteger = "int64" | "uint64"
+    export type Float = "float"
+    export type Double = "double"
+    export type Number = Integer | BigInteger | Float | Double
+    export type Struct = {
+        [propertyName: string]: Struct.Property
+    }
+    export namespace Struct
+    {
+        export type Property = Number | Struct | ((buffer: NBuffer) => any)
+    }
     export interface JSON
     {
         type: 'NBuffer'
-        data: Array<number>
+        data: ReadonlyArray<number>
     }
 }
 
