@@ -240,20 +240,48 @@ class NBuffer
     {
         this.writeOffset = this.endian == "little" ? this.#buffer.writeDoubleLE(value,this.writeOffset) : this.#buffer.writeDoubleBE(value,this.writeOffset)
     }
-    writeArray(arr: ReadonlyArray<number>,type: NBuffer.SizeOf = NBuffer.SizeOf.Int8)
+    writeArray(arr: ReadonlyArray<bigint>,type: NBuffer.SizeOf.Int64): void
+    writeArray(arr: ReadonlyArray<number>,type: NBuffer.SizeOf): void
+    writeArray(arr: ReadonlyArray<bigint | number>,type: NBuffer.SizeOf = NBuffer.SizeOf.Int8)
     {
         for(const num of arr)
         {
             switch(type)
             {
                 case NBuffer.SizeOf.Int8:
-                    this.writeInt8(num)
+                    this.writeInt8(num as number)
                     break
                 case NBuffer.SizeOf.Int16:
-                    this.writeInt16(num)
+                    this.writeInt16(num as number)
                     break
                 case NBuffer.SizeOf.Int32:
-                    this.writeInt32(num)
+                    this.writeInt32(num as number)
+                    break
+                case NBuffer.SizeOf.Int64:
+                    this.writeInt64(num as bigint)
+                    break
+            }
+        }
+    }
+    writeUArray(arr: ReadonlyArray<bigint>,type: NBuffer.SizeOf.Int64): void
+    writeUArray(arr: ReadonlyArray<number>,type: NBuffer.SizeOf): void
+    writeUArray(arr: ReadonlyArray<bigint | number>,type: NBuffer.SizeOf = NBuffer.SizeOf.Int8)
+    {
+        for(const num of arr)
+        {
+            switch(type)
+            {
+                case NBuffer.SizeOf.Int8:
+                    this.writeUInt8(num as number)
+                    break
+                case NBuffer.SizeOf.Int16:
+                    this.writeUInt16(num as number)
+                    break
+                case NBuffer.SizeOf.Int32:
+                    this.writeUInt32(num as number)
+                    break
+                case NBuffer.SizeOf.Int64:
+                    this.writeUInt64(num as bigint)
                     break
             }
         }
