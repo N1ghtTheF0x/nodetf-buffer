@@ -276,7 +276,7 @@ class NBuffer
     subarray(size: number)
     {
         const buffer = this.#buffer.subarray(this.writeOffset,this.writeOffset+size)
-        this.writeOffset += size
+        this.readOffset += size
         return new NBuffer(buffer)
     }
     get [Symbol.toStringTag]()
