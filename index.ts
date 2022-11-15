@@ -305,7 +305,9 @@ class NBuffer
     {
         const buffer = this.#buffer.subarray(this.writeOffset,this.writeOffset+size)
         this.readOffset += size
-        return new NBuffer(buffer)
+        const nbuffer = new NBuffer(buffer)
+        nbuffer.endian = this.endian
+        return nbuffer
     }
     get [Symbol.toStringTag]()
     {
