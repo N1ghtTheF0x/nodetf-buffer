@@ -21,6 +21,8 @@ export type SignedInteger = {
     "sint64": sint64
 }
 
+export type SignedIntegerType = keyof SignedInteger
+
 export type UnsignedInteger = {
     "uint8": uint8
     "uint16": uint16
@@ -28,9 +30,13 @@ export type UnsignedInteger = {
     "uint64": uint64
 }
 
+export type UnsignedIntegerType = keyof UnsignedInteger
+
 export type int = sint | uint
 
-export type Integer = SignedInteger | UnsignedInteger
+export type Integer = SignedInteger & UnsignedInteger
+export type IntegerType = SignedIntegerType | UnsignedIntegerType
+export type IntegerValue = SignedInteger[SignedIntegerType] | UnsignedInteger[UnsignedIntegerType]
 
 // IEEE 754 (float,double)
 
@@ -44,10 +50,14 @@ export type IEEE754 = {
     "double": double
 }
 
+export type IEEE754Type = keyof IEEE754
+export type IEEE754Value = IEEE754[IEEE754Type]
+
 // Numbers
 
-export type AnyNumber = Integer | IEEE754
-export type AnyNumberType = int | decimal
+export type AnyNumber = Integer & IEEE754
+export type AnyNumberType = IntegerType | IEEE754Type
+export type AnyNumberValue = IntegerValue | IEEE754Value
 
 // Endianness
 

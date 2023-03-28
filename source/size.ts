@@ -28,10 +28,10 @@ export const MAX_DOUBLE = 1.7976931348623158E+308
 
 // Byte size
 
-export const INT8 = 1
-export const INT16 = 2
-export const INT32 = 4
-export const INT64 = 8
+export const INT8_SIZE = 1
+export const INT16_SIZE = 2
+export const INT32_SIZE = 4
+export const INT64_SIZE = 8
 
-export const FLOAT = 4
-export const DOUBLE = 8
+export const FLOAT_SIZE = 4
+export const DOUBLE_SIZE = 8

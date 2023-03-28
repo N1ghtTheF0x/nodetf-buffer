@@ -6,11 +6,15 @@
         "jsx": "preserve",
         "strict": true,
         "outDir": "lib",
-        "sourceMap": true
+        "sourceMap": true,
+        "declaration": true,
+        "declarationDir": "lib",
+        "declarationMap": true
     },
     "exclude": [
         "node_modules",
         "**/node_modules/*",
-        "test*"
+        "test*",
+        "lib"
     ]
 }

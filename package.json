@@ -2,17 +2,26 @@
   "name": "@nodetf/buffer",
   "version": "1.0.0",
   "description": "Java-Like Buffer Impl",
+  "private": false,
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": ["lib/**/*"],
+  "keywords": ["java","buffer","reader","writer","blob","html","typescript","ts","nodejs"],
   "scripts": {
     "test": "ts-node test.ts",
     "prebuild": "npm run clean",
     "build": "tsc --build",
-    "clean": "tsc --build --clean"
+    "clean": "tsc --build --clean",
+    "prepare": "npm run build"
   },
   "author": "N1ghtTheF0x",
   "license": "MIT",
   "devDependencies": {
     "ts-node": "latest",
     "typescript": "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/N1ghtTheF0x/nodetf-buffer.git"
   }
 }

@@ -1,7 +1,7 @@
 import { MAX_DOUBLE, MAX_FLOAT, MAX_SINT16, MAX_SINT32, MAX_SINT64, MAX_SINT8, MAX_UINT16, MAX_UINT32, MAX_UINT64, MAX_UINT8, MIN_DOUBLE, MIN_FLOAT, MIN_SINT16, MIN_SINT32, MIN_SINT64, MIN_SINT8, MIN_UINT16, MIN_UINT32, MIN_UINT64, MIN_UINT8 } from "./size";
-import { AnyNumberType, double, float, sint16, sint32, sint64, sint8, uint16, uint32, uint64, uint8 } from "./type";
+import { AnyNumberValue, double, float, sint16, sint32, sint64, sint8, uint16, uint32, uint64, uint8 } from "./type";
 
-function limit(min: AnyNumberType,value: AnyNumberType,max: AnyNumberType): AnyNumberType
+function limit(min: AnyNumberValue,value: AnyNumberValue,max: AnyNumberValue): AnyNumberValue
 {
     if(value < min) return min
     if(max < value) return max
@@ -47,4 +47,8 @@ export function FLOAT(value: float): float
 export function DOUBLE(value: double): double
 {
     return limit(MIN_DOUBLE,value,MAX_DOUBLE) as double
+}
+export function string2chars(string: string): number[]
+{
+    return string.split("").map((char) => char.charCodeAt(0))
 }

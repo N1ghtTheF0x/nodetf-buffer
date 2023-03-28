@@ -1,14 +1,16 @@
-import NBuffer from "./index";
+import { readFileSync, writeFileSync } from "fs"
+import NBuffer from "./source/buffer"
+import Struct from "./source/struct"
+import { AnyNumber, AnyNumberType } from "./source/type"
 
-const buffer = NBuffer.read("test.bin")
+const buffer = readFileSync("test.txt")
+const nbuffer = new NBuffer(buffer)
 
-const customStruct: NBuffer.Struct = {
-    "test": (buf) =>
-    {
-        return buf.readString(buf.readInt16(),"ascii")
-    }
+const test: Struct = {
+    hello: (b) => b.readString(5),
+    world: (b) => b.readString(5)
 }
 
-const result = buffer.readStruct(customStruct)
+const output = nbuffer.readStruct(test)
 
-console.dir(result)
+console.dir(output)
